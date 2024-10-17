@@ -2,7 +2,7 @@
 
 include_once 'db.php';
 
-class Pessoa {
+class info_familia {
 
     private $conn;
 
@@ -13,12 +13,14 @@ class Pessoa {
 
     function getAll() {
         $sql = "SELECT 
-            codigo, 
-            nome, 
-            documento, 
-            DATE_FORMAT(data_cadastro, '%d/%m/%Y %H:%i:%s') data_cadastro,
+            nome completo, 
+             CPF, 
+           endereço, 
+           data_nascimento,
+           telefone,
+           email,
             DATE_FORMAT(data_nascimento, '%d/%m/%Y') data_nascimento
-        FROM pessoa";
+        FROM info_familia";
         $result = $this->conn->query($sql);
 
         $data = [];
@@ -33,12 +35,15 @@ class Pessoa {
 
     function getById($codigo) {
         $sql = "SELECT 
-            codigo, 
-            nome, 
-            documento, 
+            nome completo, 
+           CPF, 
+           endereço,  
+           data_nascimento,
+           telefone,
+           email,
             DATE_FORMAT(data_nascimento, '%Y-%m-%d') data_nascimento
-        FROM pessoa
-        WHERE codigo = ?";
+        FROM info_familia
+        WHERE nome completo = ?";
         $stm = $this->conn->prepare($sql);
 
         $stm->bind_param('i', $codigo);
@@ -57,7 +62,7 @@ class Pessoa {
     }
 
     function deleteById($codigo) {
-        $sql = "DELETE FROM pessoa WHERE codigo = ?";
+        $sql = "DELETE FROM info_familia WHERE nome completo = ?";
         $stm = $this->conn->prepare($sql);
 
         $stm->bind_param('i', $codigo);
@@ -71,19 +76,25 @@ class Pessoa {
     }
 
     function updateById($codigo, $data) {
-        $sql = "UPDATE pessoa SET 
-            nome = ?,
-            documento = ?,
-            data_nascimento = ?
-        WHERE codigo = ?";
+        $sql = "UPDATE info_familia SET 
+           nome completo = ?,  
+             CPF = ?,
+            endereço = ?, 
+           data_nascimento= ?,
+           telefone= ?,
+           email= ?
+        WHERE nome completo = ?";
 
         $stm = $this->conn->prepare($sql);
 
         $stm->bind_param(
-            'sssi', 
-            $data['nome'], 
-            $data['documento'], 
-            $data['nascimento'], 
+            'ssssssi', 
+            $data[' nome completo'], 
+            $data[' CPF'],
+            $data['endereço'], 
+            $data['data_nascimento'],  
+            $data['telefone'], 
+            $data['email']
             $codigo
         );
         $stm->execute();
@@ -96,15 +107,18 @@ class Pessoa {
     }
 
     function create($data) {
-        $sql = "INSERT INTO pessoa (nome, documento, data_nascimento) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO info_familia ( nome completo, CPF,endereço, data_nascimento, telefone, email) VALUES (?, ?, ?)";
 
         $stm = $this->conn->prepare($sql);
 
         $stm->bind_param(
-            'sss', 
-            $data['nome'], 
-            $data['documento'], 
-            $data['nascimento']
+            'ssssssi', 
+            $data[' nome completo'], 
+            $data[' CPF'],
+            $data['endereço'], 
+            $data['data_nascimento'],  
+            $data['telefone'], 
+            $data['email']
         );
         $stm->execute();
 
@@ -132,31 +146,31 @@ if (!in_array($_SERVER['REQUEST_METHOD'], $allowed_methods)) {
     ] );
 }
 
-$pessoa = new Pessoa($conn);
+$info_familia = new info_familia($conn);
 
 if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-    echo json_encode($pessoa->deleteById($_GET['codigo']));
+    echo json_encode($info_familia->deleteById($_GET['codigo']));
     return;
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $data = json_decode(file_get_contents("php://input"), true);
-    echo json_encode($pessoa->updateById($_GET['codigo'], $data));
+    echo json_encode($info_familia->updateById($_GET['codigo'], $data));
     return;
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
-    echo json_encode($pessoa->create($data));
+    echo json_encode($info_familia->create($data));
     return;
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'pessoa/cadastro')) {
-        echo json_encode($pessoa->getById($_GET['codigo']));
+    if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'info_familia/cadastro')) {
+        echo json_encode($info_familia->getById($_GET['codigo']));
         return;
     }
 
-    echo json_encode($pessoa->getAll());
+    echo json_encode($info_familia->getAll());
     return;
 }
